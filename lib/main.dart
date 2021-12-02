@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
@@ -29,6 +29,19 @@ class MyHomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final _title = ref.watch(homePageTitleProvider);
     final _massage = ref.watch(messageProvider);
+    final _count =
+        ref.watch(countDataProvider.select((countData) => countData.count));
+    final _countUp =
+        ref.watch(countDataProvider.select((countData) => countData.countUp));
+    final _countDown =
+        ref.watch(countDataProvider.select((countData) => countData.countDown));
+    final _countDataNotifier = ref.watch(countDataProvider.notifier);
+
+    ref.listen<int>(countDataProvider.select((countData) => countData.countUp),
+        (_, int countUp) {
+      print('The countUp changed $countUp');
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
@@ -37,25 +50,21 @@ class MyHomePage extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text(_massage),
             Text(
-              _massage,
-            ),
-            Text(
-              ///TODO CountData.countをセット
-              '',
+              _count.toString(),
               style: Theme.of(context).textTheme.headline4,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                ///TODO ViewModelで定義してた加算・減算の関数をかく
                 FloatingActionButton(
-                  onPressed: () {},
+                  onPressed: () => _countDataNotifier.onIncrease(),
                   tooltip: 'plus',
                   child: const Icon(CupertinoIcons.plus),
                 ),
                 FloatingActionButton(
-                  onPressed: () {},
+                  onPressed: () => _countDataNotifier.onDecrease(),
                   tooltip: 'minus',
                   child: const Icon(CupertinoIcons.minus),
                 ),
@@ -64,17 +73,15 @@ class MyHomePage extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                ///TODO get関数から取得してた値を入れる
-                Text("_viewModel.countUp"),
-                Text("_viewModel.countDown"),
+                Text(_countUp.toString()),
+                Text(_countDown.toString()),
               ],
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        ///TODO リセット関数実行
-        onPressed: () {},
+        onPressed: () => _countDataNotifier.onReset(),
         tooltip: 'refresh',
         child: const Icon(Icons.refresh),
       ),
